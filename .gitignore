@@ -1,0 +1,55 @@
+# Estado local de Vagrant e hipervisores
+.vagrant/
+*.box
+*.vdi
+*.vmdk
+*.vhd
+*.vhdx
+*.vbox
+*.vbox-prev
+*.ova
+*.ovf
+*.iso
+*.sav
+*.nvram
+
+# Claves privadas y credenciales locales
+.ssh/
+id_rsa*
+id_ed25519*
+id_ecdsa*
+private_key*
+*.pem
+*.key
+*.p12
+*.pfx
+.env
+.env.*
+secrets/
+credentials/
+*credentials*.json
+*secret*.yml
+*secret*.yaml
+*.vault
+vault-password*
+.vault_pass*
+
+# Datos de usuarios: publicar solo ejemplos anonimizados en el futuro
+data/*.csv
+
+# Ejecucion y preferencias personales
+*.log
+*.tmp
+*.temp
+*.pid
+*.retry
+*.swp
+*~
+tmp/
+logs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Vagrantfile.local
+*.local
