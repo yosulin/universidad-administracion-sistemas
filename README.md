@@ -12,10 +12,12 @@ Proyecto académico personal, independiente de cualquier entorno empresarial.
 | lab02 | Debian 13 | Cliente | 1 | 1024 MB | 192.168.200.22 |
 | lab03 | Kali Linux Rolling | Cliente futuro | Por definir | Por definir | Por definir |
 
-**Estado de fase 1: PENDIENTE de instalación del hipervisor y despliegue.**
+**Estado de fase 1: tres Debian 13 desplegadas y comprobadas.**
+Verificados SSH, sudo, Python 3, DNS, Internet, repositorios Debian y
+comunicación privada entre todas las máquinas. El ciclo `vagrant halt` /
+`vagrant up` conserva las IP y los hostnames. Las tres se dejan arrancadas.
 El Vagrantfile define únicamente las tres Debian. Kali y los servicios de las
-fases siguientes todavía no se han desplegado. Las IP de la tabla son las
-configuradas, pendientes de comprobación dentro de las VMs.
+fases siguientes todavía no se han desplegado.
 
 ## Requisitos e instalación
 
@@ -35,6 +37,12 @@ No se necesita Extension Pack ni plugins de Vagrant. No desactivar Hyper-V,
 WSL2, VBS ni protecciones de Windows. Si se solicita reiniciar, hacerlo antes
 del despliegue y con autorización.
 
+Versiones instaladas y comprobadas en este laboratorio: VirtualBox
+**7.2.22r175245** y Vagrant **2.4.9**. El instalador de Vagrant solicitó reinicio
+(código 3010); no se reinició Windows y se validó todo el laboratorio en esa
+sesión. El reinicio del anfitrión queda pendiente cuando el usuario lo decida.
+Abrir una terminal nueva para recoger los cambios de PATH del instalador.
+
 ```powershell
 VBoxManage --version
 vagrant --version
@@ -53,6 +61,8 @@ vagrant status
 Tras el primer despliegue, `vagrant up` vuelve a arrancar las máquinas.
 La imagen es `bento/debian-13`, versión fija `202510.26.0`, proveedor
 VirtualBox, arquitectura AMD64. La descarga inicial requiere Internet.
+La imagen aporta un disco virtual de 64 GiB por VM; se verificaron unos
+55 GiB libres en la raíz de cada máquina.
 
 ```powershell
 vagrant ssh srv-universidad
