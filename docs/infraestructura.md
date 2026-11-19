@@ -69,16 +69,22 @@ y [HashiCorp 2.4.9](https://releases.hashicorp.com/vagrant/2.4.9/).
 | Arquitectura | amd64, fijada explícitamente |
 | Construcción anunciada | VirtualBox 7.2.4; probada por el editor con Vagrant 2.4.9 |
 | Fecha de consulta | 19 de noviembre de 2026 |
-| Descarga de la imagen | PENDIENTE; no confundir consulta del catálogo con descarga |
+| Descarga de la imagen | OK: 19 de noviembre de 2026, archivo completo de 1.127.410.458 bytes |
 
 [Metadatos del catálogo](https://vagrantcloud.com/api/v2/vagrant/bento/debian-13).
-El proveedor AMD64 existe y su URL respondió a la consulta HTTP. El catálogo
-no proporciona checksum para este artefacto; no se ha inventado uno.
+El proveedor AMD64 existe y se descargó el archivo completo por HTTPS.
+SHA256 local: `495517cc17a77b1fe35d4f62dcd81fb86514648d5a867f7e989491c6bb648d48`.
+El catálogo no proporciona checksum para este artefacto: el hash local sirve
+para identificar esta descarga, no como cotejo independiente con el editor.
+El archivo se pudo listar con tar; contiene Vagrantfile, box.ovf, un VMDK y
+metadata.json. Este último confirma proveedor virtualbox y arquitectura amd64.
 La versión queda fijada para reproducibilidad; la actualización de paquetes
-deberá comprobarse en el despliegue. Tamaño real del disco, espacio útil y
-ausencia de escritorio: **PENDIENTE** de verificar tras importar la imagen.
-Se conserva inicialmente el disco de la imagen; si resultase insuficiente
-para doce directorios de usuarios, se ampliará antes de concluir la fase.
+deberá comprobarse en el despliegue. El OVF declara un disco de 64 GiB de
+capacidad virtual, suficiente inicialmente para el laboratorio. Espacio útil,
+particiones y ausencia de escritorio: **PENDIENTE** de verificar en la VM.
+Se conserva el disco de la imagen, sin plugins ni discos adicionales.
+El OVF usa la etiqueta de VirtualBox Debian12_64; no acredita la versión del
+sistema instalado. Debian 13 se verificará leyendo /etc/os-release al arrancar.
 
 ## Máquinas y red
 
@@ -104,6 +110,7 @@ las rutas al desplegar si cambia la conexión de red o VPN.
 | Identidad Git local | OK | Yosu y noreply derivado del ID/login verificados; configuración exclusiva de este repositorio |
 | Red propuesta sin solapamiento actual | OK | Get-NetIPAddress y Get-NetRoute |
 | Descarga y autenticidad de instaladores | OK | SHA256 oficial y firmas Oracle/HashiCorp válidas |
+| Descarga e inspección del archivo box | OK | 1.127.410.458 bytes; tar legible; metadata AMD64/VirtualBox y disco OVF de 64 GiB |
 | Exclusiones de Git | OK | git check-ignore excluye estado Vagrant, claves, discos, ISO, secretos y logs; permite documentación y playbooks |
 | vagrant validate | PENDIENTE | Vagrant no instalado |
 | VBoxManage --version | PENDIENTE | VirtualBox no instalado |
