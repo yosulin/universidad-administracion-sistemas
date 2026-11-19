@@ -128,7 +128,7 @@ las rutas al desplegar si cambia la conexión de red o VPN.
 |---|---|---|
 | Identidad GitHub | OK | gh auth status y gh api user: yosulin, ID 193429901 |
 | Repositorio remoto previo | OK | gh repo view: el repositorio solicitado no existe |
-| Identidad Git local | OK | Yosu y noreply derivado del ID/login verificados; configuración exclusiva de este repositorio |
+| Identidad Git local | OK | Yosu y noreply asociado a yosulin por la API de commits; configuración exclusiva de este repositorio |
 | Red propuesta sin solapamiento actual | OK | Get-NetIPAddress y Get-NetRoute |
 | Descarga y autenticidad de instaladores | OK | SHA256 oficial y firmas Oracle/HashiCorp válidas |
 | Descarga e inspección del archivo box | OK | 1.127.410.458 bytes; tar legible; metadata AMD64/VirtualBox y disco OVF de 64 GiB |
@@ -143,15 +143,37 @@ las rutas al desplegar si cambia la conexión de red o VPN.
 | DNS, Internet y repositorios Debian | OK | getent ahostsv4 deb.debian.org, ping 1.1.1.1 y apt-get update correctos en las tres |
 | Ping servidor/clientes y entre clientes | OK | Seis direcciones entre pares probadas; dos paquetes por destino, 0% de pérdida |
 | Persistencia tras halt/up | OK | Las tres apagadas y arrancadas de nuevo; hostname, IP, SSH, sudo, Python, DNS, Internet y seis direcciones ICMP entre pares correctos |
-| Publicación en GitHub | PENDIENTE | Se realizará después de validar las VMs y revisar secretos |
+| Publicación en GitHub | OK | Repositorio público yosulin/universidad-administracion-sistemas, rama main; push y consulta API correctos |
 
 La API de correos privados de GitHub no está autorizada con los permisos
 actuales del token. No se han ampliado permisos. El nombre Yosu se ha
 corroborado en commits asociados por GitHub a yosulin. Se utiliza el formato
 privado `ID+LOGIN@users.noreply.github.com` documentado por
 [GitHub](https://docs.github.com/en/account-and-profile/reference/email-addresses-reference),
-con ID y login obtenidos de la cuenta autenticada. La asociación del nuevo
-commit en GitHub queda **PENDIENTE** hasta la publicación.
+con ID y login obtenidos de la cuenta autenticada. Después del push, la API
+de commits confirmó author.login y committer.login iguales a yosulin.
+
+## Publicación y revisión del repositorio
+
+Repositorio: [yosulin/universidad-administracion-sistemas](https://github.com/yosulin/universidad-administracion-sistemas).
+Visibilidad pública y rama principal main confirmadas mediante gh repo view.
+El remoto origin corresponde exclusivamente a esa cuenta personal.
+La autenticación para el push se realizó con GitHub CLI, sin cambiar la
+configuración global de Git ni credenciales de otras cuentas.
+
+Se revisaron los seis archivos versionados, se escaneó su contenido buscando
+claves privadas y patrones de tokens, y se verificaron las exclusiones con
+git check-ignore. Las claves generadas para las tres VMs están bajo .vagrant/
+y quedan excluidas. No se publicaron discos, imágenes, archivos box, logs,
+contraseñas, datos personales del anfitrión ni archivos de instrucciones de agentes.
+
+Commits de preparación y validación publicados:
+
+- 3ea2835: Añadir configuración Vagrant y documentar preparación del laboratorio.
+- c37d073: Documentar descarga y metadatos de la imagen Debian 13.
+- 3340ce4: Validar despliegue y persistencia de las tres máquinas Debian.
+
+Una actualización final de documentación registra la publicación comprobada.
 
 ## Comandos de comprobación ejecutados
 
@@ -185,5 +207,8 @@ Las tres máquinas se dejan en ejecución al terminar las pruebas.
    del hardware; mostró correctamente el hostname y el SO. En los clientes
    se ejecutó con sudo, sin esos avisos. No afecta al acceso administrativo.
 
-Las comprobaciones funcionales de la fase 1 están superadas. La publicación
-en GitHub se verificará después de actualizar y revisar esta documentación.
+**Fase 1 completada:** tres Debian operativas, pruebas funcionales y de
+persistencia superadas y proyecto publicado. No se desplegó Kali ni se
+configuraron servicios de fases posteriores.
+**PENDIENTE del anfitrión:** reinicio solicitado por el instalador Vagrant,
+pospuesto sin afectar a las pruebas realizadas; no se probó un reinicio de Windows.

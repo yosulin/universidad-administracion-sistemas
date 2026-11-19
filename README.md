@@ -3,6 +3,8 @@
 Actividad universitaria para preparar una infraestructura Linux reproducible.
 Proyecto académico personal, independiente de cualquier entorno empresarial.
 
+Repositorio público: [yosulin/universidad-administracion-sistemas](https://github.com/yosulin/universidad-administracion-sistemas), rama principal `main`.
+
 ## Arquitectura
 
 | Máquina | Sistema | Función prevista | vCPU | RAM | IP privada |
