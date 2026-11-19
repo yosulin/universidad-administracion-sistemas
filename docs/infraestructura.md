@@ -3,6 +3,8 @@
 Fecha de inspección: 19 de noviembre de 2026 (Europe/Madrid).
 Estados: **OK** = ejecutado y comprobado; **ERROR** = ejecutado y fallido;
 **PENDIENTE** = todavía no ejecutado.
+La inspección y las pruebas de fase 1 se conservan como registro histórico;
+la incorporación y las comprobaciones de Kali constan al final.
 
 ## Anfitrión inspeccionado
 
@@ -109,12 +111,13 @@ completa de paquetes, que no formaba parte de las pruebas solicitadas.
 | srv-universidad | universidad-srv-universidad | 2 | 2048 MB | 192.168.200.10/24 |
 | lab01 | universidad-lab01 | 1 | 1024 MB | 192.168.200.21/24 |
 | lab02 | universidad-lab02 | 1 | 1024 MB | 192.168.200.22/24 |
+| lab03 | universidad-lab03 | 1 | 2048 MB | 192.168.200.23/24 |
 
 Interfaz 1 NAT; interfaz 2 host-only, gestionada por Vagrant. SSH NAT solo
 en bucle local. No se ha configurado puente ni reenvío LDAP/NFS.
-Las tres comparten el adaptador host-only del laboratorio, cuya dirección en
+Las cuatro comparten el adaptador host-only del laboratorio, cuya dirección en
 el anfitrión es 192.168.200.1/24. Puertos SSH observados en bucle local:
-servidor 2222, lab01 2200 y lab02 2201; Vagrant los ajusta automáticamente.
+servidor 2222, lab01 2200, lab02 2201 y lab03 2202; Vagrant los ajusta automáticamente.
 La IP NAT 10.0.2.15 se repite porque cada VM tiene su NAT independiente;
 la comunicación entre máquinas utiliza las IP host-only.
 Las rutas e interfaces IPv4 existentes se inspeccionaron y no se encontró
@@ -122,7 +125,7 @@ solapamiento con `192.168.200.0/24`. Hay interfaces físicas, VPN y redes
 virtuales de Windows existentes; ninguna se ha modificado. Volver a comprobar
 las rutas al desplegar si cambia la conexión de red o VPN.
 
-## Registro de comprobaciones
+## Registro de comprobaciones de la fase 1
 
 | Comprobación | Estado | Evidencia |
 |---|---|---|
@@ -212,3 +215,101 @@ persistencia superadas y proyecto publicado. No se desplegó Kali ni se
 configuraron servicios de fases posteriores.
 **PENDIENTE del anfitrión:** reinicio solicitado por el instalador Vagrant,
 pospuesto sin afectar a las pruebas realizadas; no se probó un reinicio de Windows.
+
+## Fase 2: Kali Linux Rolling
+
+Ejecutada el 19 de noviembre de 2026. Se comprobó el repositorio personal,
+la cuenta autenticada yosulin, la identidad Git local y un árbol de trabajo
+limpio y sincronizado con main antes de editar. Las tres Debian estaban
+registradas y encendidas. La IP 192.168.200.23 no respondió a ICMP ni presentó
+una MAC válida en la tabla de vecinos del anfitrión antes de asignarla.
+
+### Imagen y definición reproducible
+
+- Imagen oficial: **kalilinux/rolling**, versión fija **2026.2.0**, activa en el
+  [catálogo consultado](https://vagrantcloud.com/api/v2/vagrant/kalilinux/rolling).
+- Proveedor VirtualBox, arquitectura AMD64; descarga gestionada por Vagrant.
+- SHA256 publicado y contrastado correctamente por Vagrant:
+  `503366b477184fcfcbb3888f7e887d267d3b588dd697053ba99a3e9527370626`.
+- Procedencia corroborada en la [documentación oficial de Kali](https://www.kali.org/docs/virtualization/install-vagrant-guest-vm/).
+- /etc/os-release: Kali GNU/Linux Rolling, VERSION_ID 2026.2,
+  VERSION_CODENAME kali-rolling; repositorios con Suite kali-rolling.
+- Kernel observado: 6.19.14+kali-amd64; Python 3.13.12 ya instalado.
+- Disco virtual declarado por OVF: 86 GB decimales; raíz de 79 GiB,
+  unos 59 GiB libres durante la comprobación.
+
+Se añadió lab03 al mismo array del Vagrantfile, con imagen y versión propias,
+1 vCPU, 2048 MB y 192.168.200.23/24. Se conservaron los valores de las Debian,
+NAT, host-only, SSH en 127.0.0.1 y las carpetas compartidas deshabilitadas.
+La imagen oficial verificada incluye Xfce y kali-linux-default preinstalados;
+se conservaron, sin añadir herramientas ni escritorio. VirtualBox arranca sin
+ventana gráfica (vb.gui=false); esto no elimina el escritorio del invitado.
+
+### Incidencias y soluciones
+
+1. **ERROR inicial, recuperado:** srv-universidad no respondía por SSH ni
+   ICMP durante la inspección previa a crear Kali. La captura de consola
+   mostró trazas RCU y VirtualBox registró ausencia de heartbeat del invitado.
+   Se recuperó con `vagrant reload srv-universidad --force`, conservando UUID,
+   discos, recursos e IP. Se repitieron SSH, sudo, Python y conectividad.
+   La causa raíz no está confirmada. No se aplicaron cambios especulativos
+   al kernel ni al anfitrión. lab01 y lab02 conservaron sus boot_id.
+2. **ERROR inicial, corregido en código:** Kali arrancó sin IPv4 privada.
+   NetworkManager intentaba DHCP en eth1 mientras Vagrant generaba su IP
+   estática mediante systemd-networkd. El Vagrantfile añade únicamente para
+   Kali un aprovisionador breve e idempotente: escribe
+   `/etc/NetworkManager/conf.d/90-vagrant-private.conf`, excluye eth1 de
+   NetworkManager y reaplica la configuración de networkd. No duplica la IP
+   en un script ni requiere pasos manuales. Se aplicó con `vagrant provision lab03`.
+   La configuración usa la opción
+   [unmanaged-devices documentada por NetworkManager](https://networkmanager.dev/docs/api/latest/NetworkManager.conf.html).
+3. El puerto SSH 2222 ya estaba ocupado: Vagrant asignó 2202 a Kali,
+   manteniendo el enlace exclusivamente en 127.0.0.1.
+
+Este aprovisionador resuelve solo la red de infraestructura que Vagrant debe
+gestionar. No instala paquetes ni configura servicios académicos. Ansible
+instalará y configurará los sistemas y servicios en la siguiente fase;
+el controlador se decidirá entonces. ansible/ conserva solo .gitkeep.
+
+### Validaciones ejecutadas
+
+| Comprobación | Estado | Resultado |
+|---|---|---|
+| vagrant validate | OK | Configuración aceptada, incluido el ajuste de red |
+| vagrant up lab03 --provider=virtualbox | OK | Creación de universidad-lab03 desde la imagen oficial |
+| SO, hostname y recursos | OK | Kali Rolling; lab03; nproc=1; free -h muestra 1,9 GiB |
+| SSH, sudo y Python | OK | vagrant ssh lab03; sudo -n id -u=0; Python 3.13.12 |
+| IPv4 privada | OK | eth1 con 192.168.200.23/24; NetworkManager la muestra unmanaged |
+| DNS e Internet de Kali | OK | getent ahostsv4 http.kali.org y ping 1.1.1.1 |
+| Comunicación conjunta | OK | Doce direcciones entre pares, tres paquetes por destino, 0% de pérdida tras corregir la red |
+| Camino privado de Kali | OK | Ping hacia las tres Debian usando explícitamente -I eth1 |
+| Preparación de las Debian para Ansible | OK | SSH, sudo y Python 3.13.5 comprobados en las tres; recursos e IP conservados |
+| Persistencia de Kali | OK | halt/up finaliza correctamente; hostname, IP, SSH, sudo, Python, DNS, Internet y comunicación bidireccional con las Debian conservados |
+| Cuatro VMs del mismo proyecto | OK | vagrant status y VBoxManage list vms/list runningvms muestran las cuatro en ejecución; UUID de cada Debian sin cambios |
+| Seguridad de red y carpetas | OK | showvminfo confirma NAT + host-only, solo SSH en 127.0.0.1 y ausencia de carpetas compartidas |
+
+Se ejecutaron cat /etc/os-release, hostnamectl, free -h, nproc,
+ip -4 -brief address, df -h /, comprobaciones de sudo/Python y pings reales.
+No se ejecutó vagrant destroy ni se recrearon las Debian.
+Durante el apagado de Kali, VirtualBox confirmó que únicamente las tres
+Debian seguían encendidas. Después, Vagrant arrancó Kali sin volver a ejecutar
+el aprovisionador y se verificó que eth1 conservaba su IP. Su boot_id cambió;
+los de las Debian no cambiaron durante este ciclo. Se repitieron las seis
+direcciones entre Kali y las Debian, tres paquetes por destino y 0% de pérdida.
+Las cuatro máquinas quedan encendidas. No se ha repetido el bloqueo previo
+del servidor durante las comprobaciones posteriores a recuperarlo.
+
+Para reconstruir desde una instalación compatible de Vagrant y VirtualBox:
+
+```powershell
+git clone https://github.com/yosulin/universidad-administracion-sistemas.git
+cd universidad-administracion-sistemas
+vagrant validate
+vagrant up --provider=virtualbox
+vagrant status
+```
+
+La definición incluye las cuatro máquinas y el ajuste de red de Kali. En
+esta fase se probó la incorporación a las Debian existentes, no una destrucción
+y reconstrucción integral de las cuatro. No se instalaron OpenLDAP, NFS ni
+Ansible, ni se crearon inventarios, playbooks o usuarios académicos.

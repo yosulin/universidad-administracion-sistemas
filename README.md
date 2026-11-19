@@ -9,27 +9,34 @@ Repositorio público: [yosulin/universidad-administracion-sistemas](https://gith
 
 | Máquina | Sistema | Función prevista | vCPU | RAM | IP privada |
 |---|---|---|---:|---:|---|
-| srv-universidad | Debian 13 | OpenLDAP, NFS y controlador Ansible | 2 | 2048 MB | 192.168.200.10 |
+| srv-universidad | Debian 13 | OpenLDAP y NFS previstos | 2 | 2048 MB | 192.168.200.10 |
 | lab01 | Debian 13 | Cliente | 1 | 1024 MB | 192.168.200.21 |
 | lab02 | Debian 13 | Cliente | 1 | 1024 MB | 192.168.200.22 |
-| lab03 | Kali Linux Rolling | Cliente futuro | Por definir | Por definir | Por definir |
+| lab03 | Kali Linux Rolling | Cliente | 1 | 2048 MB | 192.168.200.23 |
 
-**Estado de fase 1: tres Debian 13 desplegadas y comprobadas.**
-Verificados SSH, sudo, Python 3, DNS, Internet, repositorios Debian y
-comunicación privada entre todas las máquinas. El ciclo `vagrant halt` /
-`vagrant up` conserva las IP y los hostnames. Las tres se dejan arrancadas.
-El Vagrantfile define únicamente las tres Debian. Kali y los servicios de las
-fases siguientes todavía no se han desplegado.
+**Estado de fase 2: cuatro VMs desplegadas y comprobadas.**
+SSH, sudo y Python 3 funcionan en las cuatro; la comunicación privada se
+probó en ambas direcciones entre todos los pares. Kali también superó DNS,
+Internet y el ciclo `vagrant halt lab03` / `vagrant up lab03`, conservando IP,
+hostname y acceso. Las cuatro se dejan arrancadas. Las comprobaciones de
+fase 1 y las incidencias de fase 2 constan en `docs/infraestructura.md`.
+Los servicios académicos de las fases siguientes todavía no se han desplegado.
+
+Vagrant define y despliega las VMs, sus imágenes, recursos y redes. Ansible
+instalará y configurará los sistemas y servicios en fases posteriores, con
+playbooks separados por responsabilidad. GitHub conserva el código para
+reconstruir el laboratorio. El nodo controlador Ansible se elegirá en la
+siguiente fase; `ansible/` conserva únicamente su marcador de carpeta vacía.
 
 ## Requisitos e instalación
 
 - Windows x86-64 con virtualización por hardware habilitada.
 - Oracle VirtualBox 7.2 estable y HashiCorp Vagrant 2.4.9.
 - Git; GitHub CLI solo es necesario para publicar el proyecto.
-- 4 GiB de RAM para las VMs, más memoria libre para Windows y el hipervisor;
-  se recomienda disponer de al menos 6 GiB libres antes de arrancar las tres.
-- Espacio libre suficiente para la imagen base y tres discos de crecimiento
-  dinámico; reservar al menos 30 GiB y revisar el consumo posteriormente.
+- 6 GiB de RAM para las VMs, más memoria libre para Windows y el hipervisor;
+  se recomienda disponer de al menos 8 GiB libres antes de arrancar las cuatro.
+- Espacio libre suficiente para las imágenes base y cuatro discos de crecimiento
+  dinámico; reservar al menos 50 GiB y revisar el consumo posteriormente.
 
 Descargar los instaladores para Windows AMD64 desde
 [Oracle](https://www.virtualbox.org/wiki/Downloads) y
@@ -61,15 +68,31 @@ vagrant status
 ```
 
 Tras el primer despliegue, `vagrant up` vuelve a arrancar las máquinas.
-La imagen es `bento/debian-13`, versión fija `202510.26.0`, proveedor
-VirtualBox, arquitectura AMD64. La descarga inicial requiere Internet.
-La imagen aporta un disco virtual de 64 GiB por VM; se verificaron unos
-55 GiB libres en la raíz de cada máquina.
+Las tres Debian usan `bento/debian-13`, versión fija `202510.26.0`; Kali usa
+la imagen oficial `kalilinux/rolling`, versión fija `2026.2.0`. Ambas son
+VirtualBox AMD64. Fijar una versión de la imagen conserva un punto de partida
+reproducible; Kali continúa utilizando la rama `kali-rolling`.
+La descarga inicial requiere Internet. Debian aporta 64 GiB virtuales por VM;
+Kali, 86 GB decimales (unos 80 GiB). El consumo físico crece con los datos.
+La imagen oficial Kali incluye Xfce y herramientas preinstaladas; se conservan
+y VirtualBox se ejecuta sin ventana gráfica. Un ajuste breve de red en el
+Vagrantfile evita que NetworkManager interfiera con la IP privada aplicada
+por systemd-networkd. Se ejecuta automáticamente al crear Kali y persiste
+tras apagarla; no instala paquetes ni configura servicios académicos.
+
+Para ampliar una instalación que ya tenga las tres Debian, desplegar solo Kali:
+
+```powershell
+vagrant validate
+vagrant up lab03 --provider=virtualbox
+vagrant status
+```
 
 ```powershell
 vagrant ssh srv-universidad
 vagrant ssh lab01
 vagrant ssh lab02
+vagrant ssh lab03
 ```
 
 Se conserva el usuario administrativo de la imagen y el acceso con claves
@@ -79,6 +102,9 @@ gestionado por Vagrant. Dentro de cada VM, `sudo -n true` permite comprobar sudo
 vagrant halt
 vagrant up
 ```
+
+Para detener y arrancar únicamente Kali: `vagrant halt lab03` y
+`vagrant up lab03`. No es necesario recrear las Debian para incorporar Kali.
 
 Cada VM utiliza NAT para Internet y una interfaz privada host-only en
 `192.168.200.0/24`. No se usa puente. SSH por NAT queda ligado a `127.0.0.1`;
@@ -96,11 +122,11 @@ ajenas al proyecto ni borrar la imagen base si otros proyectos la utilizan.
 
 ## Estructura y próximos pasos
 
-- `Vagrantfile`: definición de las tres Debian.
+- `Vagrantfile`: definición de las cuatro VMs y selección de imagen por máquina.
 - `docs/infraestructura.md`: inspección, decisiones y pruebas realmente ejecutadas.
 - `data/`: reservado para el futuro CSV de usuarios; los CSV locales no se publican.
 - `ansible/`: reservado para futuros playbooks; todavía vacío.
 
-Las próximas fases incorporarán Kali Rolling, OpenLDAP, NFS y Ansible.
-No se configuran PAM, usuarios académicos ni autenticación centralizada en fase 1.
+Las próximas fases incorporarán OpenLDAP, NFS y Ansible.
+No se configuran todavía PAM, usuarios académicos ni autenticación centralizada.
 No subir `.vagrant/`, discos, imágenes, claves privadas ni contraseñas.
